@@ -45,21 +45,7 @@ export async function initWebGPU() {
         format: canvasFormat,
     });
 
-    // Tweakpane: easily adding tweak control for parameters.
-    const PARAMS = {
-        level: 0,
-        name: 'Test',
-        active: true,
-      };
-    
-      const pane = new Pane({
-        title: 'Debug',
-        expanded: false,
-      });
-    
-      pane.addInput(PARAMS, 'level', {min: 0, max: 100});
-      pane.addInput(PARAMS, 'name');
-      pane.addInput(PARAMS, 'active');
+
 
     console.log("WebGPU init successsful");
 }

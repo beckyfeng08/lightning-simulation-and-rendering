@@ -1,6 +1,5 @@
 import './style.css'
-
-import { GUI } from 'dat.gui';
+import { Pane } from 'tweakpane';
 import { initWebGPU, Renderer } from './renderer';
 import { allRenderer } from './renderers/alltogether_renderer'; // TODO: add more renderers as we see git
 // import { cloudRenderer } from './renderers/cloud_renderer'; 
@@ -14,7 +13,6 @@ import { Stage } from './stage/stage';
 await initWebGPU(); // in renderer.ts
 
 const camera = new Camera();
-const gui = new GUI();
 const stage = new Stage(camera);
 
 var renderer: Renderer | undefined;
@@ -41,8 +39,23 @@ function setRenderer(mode: string) {
     }
 }
 
+// Tweakpane: easily adding tweak control for parameters.
+const PARAMS = {
+    mode: renderModes.all,
+    level: 0,
+    name: 'Test',
+    active: true,
+    };
 
-let renderModeController = gui.add({ mode: renderModes.all }, 'mode', renderModes);
-renderModeController.onChange(setRenderer);
+    const pane = new Pane({
+    title: 'Debug',
+    expanded: false,
+    });
 
-setRenderer(renderModeController.getValue());
+pane.addInput(PARAMS, 'mode', {options: renderModes}).on('change', (ev) => setRenderer(ev.value));
+
+    pane.addInput(PARAMS, 'level', {min: 0, max: 100});
+    pane.addInput(PARAMS, 'name');
+    pane.addInput(PARAMS, 'active');
+
+setRenderer(PARAMS.mode);
