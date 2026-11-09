@@ -1,51 +1,48 @@
 import './style.css'
-import init from './test-triangle';
-import { assert } from './utils/util';
-import { Pane } from 'tweakpane';
 
-(async () => {
-  if (navigator.gpu === undefined) {
-    const h = document.querySelector('#title') as HTMLElement;
-    h.innerText = 'WebGPU is not supported in this browser.';
-    return;
-  }
-  const adapter = await navigator.gpu.requestAdapter();
-  if (adapter === null) {
-    const h = document.querySelector('#title') as HTMLElement;
-    h.innerText = 'No adapter is available for WebGPU.';
-    return;
-  }
-  const device = await adapter.requestDevice();
+import { GUI } from 'dat.gui';
+import { initWebGPU, Renderer } from './renderer';
+import { allRenderer } from './renderers/alltogether_renderer'; // TODO: add more renderers as we see git
+// import { cloudRenderer } from './renderers/cloud_renderer'; 
+// import { lightningRenderer } from './renderers/lightning_renderer'; 
+// import { soundRenderer } from './renderers/sound_renderer'; 
 
-  const canvas = document.querySelector<HTMLCanvasElement>('#webgpu-canvas');
-  assert(canvas !== null);
-  const observer = new ResizeObserver(() => {
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
+import { Camera } from './stage/camera';
+import { Stage } from './stage/stage';
 
-    // Note: You might want to add logic to resize your render target textures here.
 
-  });
-  observer.observe(canvas);
-  const context = canvas.getContext('webgpu') as GPUCanvasContext;
+await initWebGPU(); // in renderer.ts
 
-  // Tweakpane: easily adding tweak control for parameters.
-  const PARAMS = {
-    level: 0,
-    name: 'Test',
-    active: true,
-  };
+const camera = new Camera();
+const gui = new GUI();
+const stage = new Stage(camera);
 
-  const pane = new Pane({
-    title: 'Debug',
-    expanded: false,
-  });
+var renderer: Renderer | undefined;
 
-  pane.addInput(PARAMS, 'level', {min: 0, max: 100});
-  pane.addInput(PARAMS, 'name');
-  pane.addInput(PARAMS, 'active');
+const renderModes = { all: 'all',
+    // cloud: 'cloud', lightning: 'lightning', sound: 'sound', 
+};
 
-  // Your WebGPU code can go here:
+function setRenderer(mode: string) {
+    renderer?.stop();
 
-  init(context, device);  // Remove me!
-})();
+    switch (mode) {
+        // case renderModes.cloud:
+        //     renderer = new CloudRenderer(stage);
+        //     break;
+        // case renderModes.lightning:
+        //     renderer = new LightningRenderer(stage);
+        //     break;
+        // case renderModes.sound:
+        //     renderer = new SoundRenderer(stage);
+        //     break;
+        case renderModes.all:
+            renderer = new allRenderer(stage);
+    }
+}
+
+
+let renderModeController = gui.add({ mode: renderModes.all }, 'mode', renderModes);
+renderModeController.onChange(setRenderer);
+
+setRenderer(renderModeController.getValue());

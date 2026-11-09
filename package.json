@@ -11,11 +11,12 @@
     "@tweakpane/core": "^1.1.7",
     "@webgpu/types": "^0.1.31",
     "typescript": "^5.0.4",
-    "vite": "^4.3.1",
+    "vite": "^8.3.7",
     "vite-raw-plugin": "^1.0.1"
   },
   "dependencies": {
-    "tweakpane": "^3.1.8",
-    "wgpu-matrix": "^3.2.0"
+    "dat.gui": "^0.7.9",
+    "tweakpane": "^3.1.10",
+    "wgpu-matrix": "^3.4.2"
   }
 }

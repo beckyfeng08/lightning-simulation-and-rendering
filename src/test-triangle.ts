@@ -1,3 +1,5 @@
+// ~~~~~~~ UNUSED: triangle has migrated to renderer.ts ~~~~~~~
+
 // Note: You can import your separate WGSL shader files like this.
 import triangleVertWGSL from './shaders/triangle.vert.wgsl';
 import fragWGSL from './shaders/red.frag.wgsl';
