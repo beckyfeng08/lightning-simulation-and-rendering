@@ -8,6 +8,19 @@ export var canvasFormat: GPUTextureFormat;
 export var context: GPUCanvasContext;
 export var device: GPUDevice;
 // export var canvasTextureView: GPUTextureView;
+let paneContainer: HTMLDivElement | undefined;
+export function createPane(title: string, expanded = true): Pane {
+    if (!paneContainer) {
+        paneContainer = document.createElement('div');
+        Object.assign(paneContainer.style, {
+            position: 'fixed', top: '8px', right: '8px',
+            display: 'flex', flexDirection: 'column', gap: '8px',
+            width: '256px', zIndex: '10',
+        }); 
+        document.body.appendChild(paneContainer); 
+    }
+    return new Pane({title, expanded, container: paneContainer });
+}
 
 export const fovYDegrees = 45;
 export async function initWebGPU() {
@@ -52,8 +65,10 @@ export async function initWebGPU() {
 
 export abstract class Renderer {
     protected camera: Camera;
+    protected pane?: Pane;
 
     private prevTime: number = 0;
+    protected dt:  number = 0;
     private frameRequestId: number;
 
     constructor(stage: Stage) {
@@ -64,6 +79,7 @@ export abstract class Renderer {
 
     stop(): void {
         cancelAnimationFrame(this.frameRequestId);
+        this.pane?.dispose();
     }
 
     protected abstract draw(): void;
@@ -73,8 +89,8 @@ export abstract class Renderer {
             this.prevTime = time;
         }
 
-        let deltaTime = time - this.prevTime;
-        this.camera.onFrame(deltaTime);
+        this.dt = time - this.prevTime;
+        this.camera.onFrame(this.dt);
 
         this.draw();
 
