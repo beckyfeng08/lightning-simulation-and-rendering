@@ -1,4 +1,7 @@
 export var audioContext: AudioContext;
+import { WaveFile } from 'wavefile';
+import { writeFile } from 'node:fs/promises';
+
 
 export async function initWebAudio() {
     audioContext = new AudioContext();
@@ -79,6 +82,103 @@ const decoded = await audioContext.decodeAudioData(data);
     return out;
 }
 
+export class AudioHandler {
+    private recording: Float32Array;
+    private dt: number;
+
+    constructor(dtime: number, size: number) {
+        this.recording = new Float64Array(size);
+        this.dt = dtime;
+        console.log("recording for ", this.dt * size, "seconds");
+    }
+
+    // getters
+    get recording_buffer(): Float32Array
+    {
+        return this.recording;
+    }
+
+    get recording_size(): number
+    {
+        return this.recording.length;
+    }
+
+    public record(data: Float32Array, offset: number = 0): void {
+        if (offset < 0 || offset + data.length > this.recording_size) {
+            throw new Error(
+                `recording out of bounds: writing ${data.length} samples at ${offset}, size is ${this.recording_size}`
+            );
+        }
+        this.recording.set(data, offset);
+    }
+
+    public record_sample(index: number, value: number): void {
+        if (index < 0 || index >= this.recording_size) {
+            throw new Error(`index out of bounds while recording ${index} with size ${this.recording_size}`);
+        }
+        this.recording[index] = value;
+    }
+
+    public save_recording(name: string = "recording", normalize: boolean = true): void {
+        
+        const sampleRate = Math.round(1 / this.dt); // integer rate for wav
+        const n = this.recording_size;
+        const data = this.recording;
+
+        // scale so the loudest sample hits full scale (raw pressures are usually tiny)
+        let peak = 1;
+        if (normalize) {
+            peak = 0;
+            for (let i = 0; i < n; i++) {
+                peak = Math.max(peak, Math.abs(data[i]));
+            }
+            if (peak == 0) peak = 1;  // all silence, avoid dividing by 0
+        }
+
+
+        const dataBytes = n * 2;                      // 16-bit mono
+        const buf = new ArrayBuffer(44 + dataBytes);
+        const v = new DataView(buf);
+        const str = (off: number, s: string) => {
+            for (let i = 0; i < s.length; i++) v.setUint8(off + i, s.charCodeAt(i));
+        };
+
+        str(0, "RIFF");  v.setUint32(4, 36 + dataBytes, true);  str(8, "WAVE");
+        str(12, "fmt "); v.setUint32(16, 16, true);
+        v.setUint16(20, 1, true);  
+        v.setUint16(22, 1, true);
+        v.setUint32(24, sampleRate, true);
+        v.setUint32(28, sampleRate * 2, true);
+        v.setUint16(32, 2, true); 
+        v.setUint16(34, 16, true);
+        str(36, "data"); v.setUint32(40, dataBytes, true);
+
+        for (let i = 0; i < n; i++) {
+            const s = Math.max(-1, Math.min(1, data[i] / peak));
+            v.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+        }
+
+        // trigger download, delete later
+        const url = URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = name.endsWith(".wav") ? name : `${name}.wav`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    }
+
+    public print_recording()
+    {
+        // print time based data to the console
+        console.log(this.recording);
+    }
+
+}
+
+// WE MAY NOT USE THIS??? keep around for now, this is just prerecorded sound for now. May need to store attributes like pressures and positions here in the future
+
 export class ThunderSound {
     private gainValue = 1.0; // linear gain after distance attenuation
     public channels: Float32Array<ArrayBuffer>[]; // there are 2 channels
@@ -115,5 +215,4 @@ export class ThunderSound {
             this.finished = true; // tells renderer to remove this object
         }
     }
-
 }
