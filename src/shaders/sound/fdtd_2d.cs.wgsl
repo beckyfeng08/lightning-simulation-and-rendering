@@ -65,7 +65,7 @@ fn inject_sound_in_grid(@builtin(global_invocation_id) g: vec3<u32>)
     pressures[p_idx] = pressure;
 }
 
-@compute @workgroup_size(8,8)
+@compute @workgroup_size(32, 32)
 fn update_velocities(@builtin(global_invocation_id) g: vec3<u32>)
 {
     let x = i32(g.x);
@@ -97,7 +97,7 @@ fn update_velocities(@builtin(global_invocation_id) g: vec3<u32>)
     velocities[xy] = v;
 }
 
-@compute @workgroup_size(8,8)
+@compute @workgroup_size(32, 32)
 fn update_pressures(@builtin(global_invocation_id) g: vec3<u32>)
 {
     let x = i32(g.x);

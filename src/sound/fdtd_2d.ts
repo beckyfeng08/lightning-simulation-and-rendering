@@ -40,7 +40,7 @@ export class FDTD_2D extends FDTD {
     private compute_bindgroup: GPUBindGroup;
 
     // workgroup stuff
-    private readonly workGroupSize: number = 8;
+    private readonly workGroupSize: number = 32;
     private readonly injectGroupSize: number = 64;
 
     // end compute passes per interval so that device isn't lost

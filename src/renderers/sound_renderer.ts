@@ -21,7 +21,10 @@ export class soundRenderer extends renderer.Renderer {
     constructor(stage: Stage) {
         super(stage);
 
-        this.fdtd = new FDTD_2D(500, 160, 0.1, 0.00206, 100000);
+        let sizex = 3000;
+        let sizey = 3000;
+
+        this.fdtd = new FDTD_2D(sizex, sizey, 0.1, 0.00206, 50000); // ten iters for now
         // this.fdtd = new FDTD_3D(100, 100, 100, 0.1, 0.00206, 100000);
 
         this.audiohandler = new AudioHandler(this.fdtd.dtime, this.fdtd.numiterations);
@@ -124,7 +127,7 @@ export class soundRenderer extends renderer.Renderer {
 
         this.fdtd.inject_sound_at(positions, pressures, times);
         // this.fdtd.set_mic_at(90, 90, 90); // top right
-        this.fdtd.set_mic_at(90, 90); // top right
+        this.fdtd.set_mic_at(9000, 9000); // top right
 
         let data: Float32Array = await this.fdtd.start_simulation();
         this.audiohandler.record(data);
